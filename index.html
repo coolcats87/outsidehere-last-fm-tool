@@ -6,11 +6,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- HOME VIEW -->
+  <!-- ─── HOME ─────────────────────────────────────────────── -->
   <section id="homeView" class="view active">
     <div class="home-bg-glow"></div>
     <div class="home-card">
@@ -21,9 +22,23 @@
       <h1 class="hero-title">outsidehere's<br><em>Last.FM tool</em></h1>
       <p class="hero-sub">check out random stats from your Last.FM library!</p>
 
+      <div class="mode-toggle-wrap">
+        <span class="toggle-label">Single</span>
+        <label class="switch">
+          <input type="checkbox" id="modeToggle">
+          <span class="slider round"></span>
+        </label>
+        <span class="toggle-label">Compatibility</span>
+      </div>
+
       <div class="input-group">
         <label for="usernameInput">Username</label>
         <input type="text" id="usernameInput" placeholder="your last.fm username" autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="input-group hidden" id="friendInputGroup">
+        <label for="friendInput">Compare With</label>
+        <input type="text" id="friendInput" placeholder="friend's username" autocomplete="off" spellcheck="false">
       </div>
 
       <div class="input-group">
@@ -56,7 +71,7 @@
     </div>
   </section>
 
-  <!-- LOADING VIEW -->
+  <!-- ─── LOADING ───────────────────────────────────────────── -->
   <section id="loadingView" class="view hidden">
     <div class="loading-inner">
       <div class="loading-header">
@@ -66,40 +81,55 @@
       </div>
       <div class="progress-track">
         <div id="progress-bar"></div>
-        <div class="progress-glow" id="progress-glow"></div>
       </div>
       <div id="status-log" class="terminal-box"></div>
       <button id="cancelBtn">STOP!</button>
     </div>
   </section>
 
-  <!-- RESULTS VIEW -->
+  <!-- ─── SINGLE RESULTS ────────────────────────────────────── -->
   <section id="resultsView" class="view hidden">
-    <div class="results-wrap">
+    <div class="results-wrap" id="results-wrap">
       <div class="results-header">
         <div class="results-title-group">
           <h1 class="hero-title">outsidehere's<br><em>Last.FM tool</em></h1>
           <span class="results-eyebrow">Results:</span>
           <h2 class="results-username" id="res-username">—</h2>
-          <h5 id="res-verdict" class="results-eyebrow" style="color: var(--text-mute); margin-top: 8px; text-transform: none;"></h5>
+          <h5 id="res-verdict" class="results-eyebrow" style="color:var(--text-mute);margin-top:8px;text-transform:none;"></h5>
         </div>
-        <button class="btn-ghost" onclick="location.reload()">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7a6 6 0 1 0 6-6 6 6 0 0 0-4.24 1.76L1 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 1v3h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          New Scan
-        </button>
+        <div class="results-actions">
+          <button class="btn-ghost" onclick="location.reload()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7a6 6 0 1 0 6-6 6 6 0 0 0-4.24 1.76L1 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 1v3h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            New Scan
+          </button>
+          <button class="btn-share" id="shareBtn">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 1a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM4 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm6 4a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" stroke="currentColor" stroke-width="1.3"/><path d="M5.8 6.3l2.4-1.6M5.8 7.7l2.4 1.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Share Pulse
+          </button>
+        </div>
       </div>
 
-      <!-- STAT CARDS ROW -->
       <div class="stat-grid">
+        <!-- Top Genre — spans 2 rows to fit the genre cloud -->
         <div class="stat-card accent-card">
           <span class="stat-label">Top Genre</span>
           <span class="stat-value" id="res-genre">—</span>
           <span class="stat-sub">your primary vibe</span>
         </div>
         <div class="stat-card">
+          <span class="stat-label">Total Hours</span>
+          <span class="stat-value" id="res-total-hours">—</span>
+          <span class="stat-sub">lifetime listening</span>
+        </div>
+        <div class="stat-card">
           <span class="stat-label">Daily Average</span>
           <span class="stat-value" id="res-daily">—</span>
           <span class="stat-sub">minutes per day</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Scrobbles / Day</span>
+          <span class="stat-value" id="res-scrobbles-day">—</span>
+          <span class="stat-sub">avg daily tracks</span>
         </div>
         <div class="stat-card">
           <span class="stat-label">Track Replay</span>
@@ -112,14 +142,14 @@
           <span class="stat-sub">avg plays per artist</span>
         </div>
         <div class="stat-card">
-          <span class="stat-label">Average Song Length</span>
-          <span class="stat-value" id="res-avg-song">—</span>
-          <span class="stat-sub">minutes</span>
-        </div>
-        <div class="stat-card">
           <span class="stat-label">Album Replay</span>
           <span class="stat-value" id="res-album-replay">—</span>
           <span class="stat-sub">avg plays per album</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Avg Song Length</span>
+          <span class="stat-value" id="res-avg-song">—</span>
+          <span class="stat-sub">minutes</span>
         </div>
         <div class="stat-card">
           <span class="stat-label">Top Artist %</span>
@@ -127,13 +157,38 @@
           <span class="stat-sub">of total scrobbles</span>
         </div>
         <div class="stat-card">
-          <span class="stat-label">Scrobbles / Day</span>
-          <span class="stat-value" id="res-scrobbles-day">—</span>
-          <span class="stat-sub">avg daily tracks</span>
+          <span class="stat-label">Obsession Index</span>
+          <span class="stat-value" id="res-obsession">—</span>
+          <span class="stat-sub">% top track looped</span>
         </div>
+        <div class="stat-card">
+          <span class="stat-label">Listening Age</span>
+          <span class="stat-value" id="res-listen-age">—</span>
+          <span class="stat-sub" id="res-listen-era">avg release year</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Peak Hour</span>
+          <span class="stat-value" id="res-peak-hour">—</span>
+          <span class="stat-sub">most active time</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Schedule</span>
+          <span class="stat-value stat-value--sm" id="res-night-owl">—</span>
+          <span class="stat-sub">listening pattern</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Diversity Score</span>
+          <span class="stat-value" id="res-diversity">—</span>
+          <span class="stat-sub">artist variety index</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Mainstream Index</span>
+          <span class="stat-value stat-value--sm" id="res-mainstream">—</span>
+          <span class="stat-sub">mainstream score</span>
+        </div>
+        <div class="stat-card ad-card-big" id="ad-slot"></div>
       </div>
 
-      <!-- TOP LISTS -->
       <div class="lists-grid">
         <div class="list-panel">
           <h3 class="panel-title">
@@ -150,8 +205,155 @@
           <ol id="res-tracks" class="top-list"></ol>
         </div>
       </div>
+
+      <div class="list-panel" style="margin-bottom:1rem;">
+        <h3 class="panel-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.2"/></svg>
+          Top Albums
+        </h3>
+        <ol id="res-albums" class="top-list top-list--row"></ol>
+      </div>
+      <!-- Genre Cloud Panel -->
+      <div class="list-panel genre-cloud-panel" style="margin-bottom:1rem;">
+        <h3 class="panel-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M4 9c.5-1.5 2-2.5 3-2.5s2.5 1 3 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Genre Cloud
+        </h3>
+        <div id="genre-cloud" class="genre-cloud-svg-wrap"></div>
+      </div>
     </div>
   </section>
+
+  <!-- ─── COMPATIBILITY VIEW ────────────────────────────────── -->
+  <section id="compatView" class="view hidden">
+    <div class="compat-wrap" id="compat-wrap">
+
+      <div class="compat-header">
+        <div>
+          <h1 class="hero-title">outsidehere's<br><em>Last.FM tool</em></h1>
+          <span class="results-eyebrow">Compatibility Report</span>
+        </div>
+        <div class="results-actions">
+          <button class="btn-ghost" onclick="location.reload()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7a6 6 0 1 0 6-6 6 6 0 0 0-4.24 1.76L1 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 1v3h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            New Scan
+          </button>
+          <button class="btn-share" id="compatShareBtn">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10 1a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM4 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm6 4a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" stroke="currentColor" stroke-width="1.3"/><path d="M5.8 6.3l2.4-1.6M5.8 7.7l2.4 1.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Share Report
+          </button>
+        </div>
+      </div>
+
+      <!-- VS Hero -->
+      <div class="compat-hero">
+        <div class="compat-user-badge">
+          <span class="compat-user-name" id="comp-user1">—</span>
+          <span class="compat-user-sub" id="comp-user1-scrobbles">—</span>
+        </div>
+        <div class="compat-score-block">
+          <div class="compat-score-num" id="comp-score">—</div>
+          <div class="compat-score-label">match</div>
+          <div class="compat-meter-track">
+            <div class="compat-meter-fill" id="comp-meter-fill"></div>
+          </div>
+          <div class="compat-rating-badge" id="comp-rating-badge">—</div>
+          <div class="score-breakdown" id="comp-score-breakdown"></div>
+        </div>
+        <div class="compat-user-badge compat-user-badge--right">
+          <span class="compat-user-name" id="comp-user2">—</span>
+          <span class="compat-user-sub" id="comp-user2-scrobbles">—</span>
+        </div>
+      </div>
+
+      <!-- Vibe Verdict -->
+      <div class="compat-verdict-card">
+        <span class="compat-verdict-icon">🎵</span>
+        <p class="compat-verdict-text" id="comp-verdict-text">—</p>
+      </div>
+
+      <!-- Who Listens More -->
+      <div class="list-panel" id="comp-more-bar"></div>
+
+      <!-- Stat Row -->
+      <div class="compat-stat-row">
+        <div class="compat-stat-chip">
+          <span class="compat-stat-num" id="comp-shared-count">—</span>
+          <span class="compat-stat-lbl">shared artists</span>
+        </div>
+        <div class="compat-stat-chip">
+          <span class="compat-stat-num" id="comp-unique-u1">—</span>
+          <span class="compat-stat-lbl" id="comp-unique-u1-lbl">only you listen to</span>
+        </div>
+        <div class="compat-stat-chip">
+          <span class="compat-stat-num" id="comp-unique-u2">—</span>
+          <span class="compat-stat-lbl" id="comp-unique-u2-lbl">only they listen to</span>
+        </div>
+        <div class="compat-stat-chip">
+          <span class="compat-stat-num" id="comp-genre-overlap">—</span>
+          <span class="compat-stat-lbl">genre overlap</span>
+        </div>
+      </div>
+
+      <!-- Era comparison -->
+      <div class="compat-era-strip">
+        <span class="compat-era-icon">🕰️</span>
+        <span class="compat-era-text" id="comp-era-compare">—</span>
+      </div>
+
+      <!-- Bridge Artist -->
+      <div class="list-panel bridge-panel hidden" id="bridge-panel">
+        <h3 class="panel-title bridge-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="4" r="2.5" stroke="currentColor" stroke-width="1.4"/></svg>
+          The Bridge Artist
+        </h3>
+        <div id="bridge-content" class="bridge-content"></div>
+      </div>
+
+      <!-- Main Grid: Shared + Divergence -->
+      <div class="compat-lists-grid">
+        <div class="list-panel compat-shared-panel">
+          <h3 class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm-4.5 10c0-2.485 2.015-4.5 4.5-4.5s4.5 2.015 4.5 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            Shared Artists
+            <span class="panel-count" id="comp-shared-panel-count"></span>
+          </h3>
+          <ol id="comp-shared-list" class="top-list compat-shared-list"></ol>
+        </div>
+        <div class="compat-divergence-col">
+          <div class="list-panel compat-diverge-panel">
+            <h3 class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span id="comp-diverge-u1-title">Your Exclusives</span>
+            </h3>
+            <ol id="comp-only-u1-list" class="top-list"></ol>
+          </div>
+          <div class="list-panel compat-diverge-panel">
+            <h3 class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12 7H2M6 3L2 7l4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span id="comp-diverge-u2-title">Their Exclusives</span>
+            </h3>
+            <ol id="comp-only-u2-list" class="top-list"></ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Genre Fingerprint -->
+      <div class="list-panel compat-genre-panel">
+        <h3 class="panel-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M4 9c.5-1.5 2-2.5 3-2.5s2.5 1 3 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Genre Fingerprints
+        </h3>
+        <div class="genre-fingerprint-grid" id="comp-genre-grid"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── PULSE CARD (off-screen canvas target) ────────────── -->
+  <div id="pulse-card" class="pulse-card"></div>
+
+  <footer class="version-footer">v1.3.0 — Built by outsidehere</footer>
 
   <script src="app.js"></script>
 </body>
